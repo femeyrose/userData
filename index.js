@@ -6,6 +6,21 @@ const session =require('express-session');
 
 const app =express();
 
+const http = require('http');
+const fs = require('fs');
+
+//const express = require('express');
+const multer = require('multer');
+const csv = require('fast-csv');
+
+const Router = express.Router;
+
+
+const upload = multer({ dest: 'tmp/csv/' });
+//const app = express();
+const router = new Router();
+const server = http.createServer(app);
+
 app.use(session({
     secret:'randomsecurestring',
     resave:false,
@@ -35,9 +50,9 @@ const authMiddleware=(req,res,next)=>{
      }
 };
 
-app.get('/',(req,res)=>{
-    res.send("hello world ")
-})
+// app.get('/',(req,res)=>{
+//     res.send("hello world ")
+// })
 
 //create a user
 
@@ -70,13 +85,50 @@ app.get('/userlist',(req,res)=>{
     });
 });
 
-// app.delete('/userlist/:userName',(req,res)=>{ 
-//     dataService.deleteUser(req,req.params.userName)
-    
-//     .then(result=>{
-//         res.status(200).json(result);
-//     });
-// })
+
+//delete a user
+
+app.delete('/userlist/:id',(req,res)=>{ 
+    dataService.deleteUser(req.params.id)
+    .then(result=>{
+        res.status(200).json(result);
+    });
+})
+
+//update a user
+
+app.put('/:id',function(req,res,next){
+    let data=req.body;
+    dataService.updateUser(req.params.id,data)
+    .then(data=>{
+      res.status(200).json({
+        message:"User updated successfully"
+      });
+    });
+  });
+
+
+router.post('/', upload.single('file'), function (req, res) {
+    const fileRows = [];
+  
+    // open uploaded file
+    csv.fromPath(req.file.path)
+      .on("data", function (data) {
+        fileRows.push(data); // push each row
+        console.log(data)
+      })
+      .on("end", function () {
+        console.log(fileRows)
+        fs.unlinkSync(req.file.path);   // remove temp file
+        //process "fileRows" and respond
+        console.log("read finished")
+      })
+  });
+  
+  app.use('/upload-csv', router);
+   
+
+  
 
 app.listen(3000, ()=>
 {console.log("server started at port 3000")});

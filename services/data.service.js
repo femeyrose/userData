@@ -1,4 +1,14 @@
+// const express= require('express');
 const db = require("./db");
+// const multer = require('multer');
+// const csv = require('fast-csv');
+
+// const Router = express.Router;
+
+// const upload = multer({ dest: 'tmp/csv/' });
+//const app = express();
+// const router = new Router();
+
 
 let details = {
 
@@ -16,7 +26,6 @@ let details = {
     })
       .then(user => {
         if (user) {
-         
           return {
             status: false,
             statusCode: 422,
@@ -24,33 +33,19 @@ let details = {
           }
          
         }
-        
-
         const newUser = new db.User({
             userName,firstName,lastName,address, pincode,userlist:[] 
         });
         //newUser.save();
-            newUser.userlist.push({
-            username: 'userName',
-            firstname: 'firstName',
-            lastname: 'lastName',
-            add: 'address', 
-            pin: pincode,
-            id: Math.floor(Math.random() * 100000)
-              });
+            
               newUser.save();
-        
         return {
           status: true,
           statusCode: 200,
-          message: "User created successfully",
-          
-          
-        }
-        
-              
+          message: "User created successfully", 
+          userlist: newUser.userlist
+        }       
       })
-     
   }
 
   
@@ -81,7 +76,7 @@ let details = {
 
 const getUsers = (req) => {
     return db.User.find({
-        userlist:req.userlist
+      
       })
 
       .then(user=>
@@ -89,7 +84,7 @@ const getUsers = (req) => {
         return{
         status:true,
         statusCode:200,
-        userlist: user.userlist,
+        userlist: user,
     }
 })
 
@@ -97,30 +92,53 @@ const getUsers = (req) => {
 
 
 
-// const deleteUser = (userName) => {
-//     return db.User.findOne({
-//         userName 
-//     })
+const deleteUser = (id) => {
+    return db.User.findOneAndDelete({
+        _id:id
+    })
   
-//     .then(user=>{
-//       user.userName=user.userName.filter(t=>{
-//         if(t._userName==userName){
-//           return false
-//         }
-//         return true;
-//       })
-//       user.save();
-//       return {
-//         status:true,
-//         statusCode:200,
-//         message:'User deleted successfully'
-//       }
-//     })
-// }
+    .then(user=>{
+      
+      return {
+        status:true,
+        statusCode:200,
+        message:'User deleted successfully'
+      }
+    })
+}
+
+const updateUser = (id,data)=>{
+  return db.User.findOneAndUpdate ({
+      _id:id
+  },data)
+  }
+
+
+  //csv file upload
+
+  // const fileRows = [];
+  // csv.fromPath(req.file.path)
+  //   .on("data", function (data) {
+  //     fileRows.push(data); // push each row
+  //   })
+
+    // const fileRows = [];
+    // csv.fromPath(req.file.path)
+    //   .on("data", function (data) {
+    //     fileRows.push(data); // push each row
+    //   })
+    //   .on("end", function () {
+    //     console.log(fileRows) //contains array of arrays. Each inner array represents row of the csv file, with each element of it a column
+    //     fs.unlinkSync(req.file.path);   // remove temp file
+    //     //process "fileRows" and respond
+    //   })
+
+
 
   module.exports = {
    create,
    find,
    getUsers,
-//    deleteUser
+   deleteUser,
+   updateUser
   }
